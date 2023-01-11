@@ -1,0 +1,125 @@
+package com.blackrose.shutsms.ui.CreateGroup;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import com.blackrose.shutsms.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+
+public class CreateGroupFragment extends Fragment {
+
+    EditText groupName;
+    EditText groupDescription;
+    ImageView groupImage;
+    FirebaseAuth auth;
+    FirebaseFirestore db;
+    FirebaseStorage storage;
+    RecyclerView recyclerView;
+    Uri filePath;
+
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_create_group, container, false);
+        auth = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance();
+        recyclerView = view.findViewById(R.id.groupRecyclerView);
+        groupImage = view.findViewById(R.id.groupImageCreate);
+
+        ActivityResultLauncher<Intent> launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == getActivity().RESULT_OK) {
+                Intent data = result.getData();
+                filePath = data.getData();
+                groupImage.setImageURI(filePath);
+            }
+        });
+
+        groupImage.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            launcher.launch(Intent.createChooser(intent, "Select Picture"));
+
+
+        });
+
+        Button createGroup = view.findViewById(R.id.CreateGroupButton);
+        createGroup.setOnClickListener(v -> {
+
+            String groupName = this.groupName.getText().toString();
+            String groupDescription = this.groupDescription.getText().toString();
+            if (groupName.isEmpty() || groupDescription.isEmpty()) {
+                Toast.makeText(getContext(), "Please fill all the fields", Toast.LENGTH_SHORT).show();
+            } else {
+
+                if (filePath != null) {
+                    CreateGroup(groupName, groupDescription, filePath);
+                } else {
+                    CreateGroup(groupName, groupDescription, null);
+                }
+
+
+            }
+
+        });
+
+
+        return view;
+    }
+
+    public void CreateGroup(String groupName, String groupDescription, Uri filePath) {
+
+        String uuid = UUID.randomUUID().toString();
+        HashMap<String, Object> group = new HashMap<>();
+        group.put("groupID", uuid);
+        group.put("userID",auth.getUid());
+        group.put("groupName", groupName);
+        group.put("groupDescription", groupDescription);
+
+
+        db.collection("/Groups/").document(uuid).set(group).addOnSuccessListener(aVoid -> {
+            Toast.makeText(getContext(), "Group Created", Toast.LENGTH_SHORT).show();
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Group Creation Failed", Toast.LENGTH_SHORT).show();
+        });
+
+        if (filePath != null) {
+            storage.getReference().putFile(filePath).addOnSuccessListener(taskSnapshot -> {
+                storage.getReference().getDownloadUrl().addOnSuccessListener(uri -> {
+                    group.put("groupImage", uri.toString());
+                    db.collection("Groups").document(uuid).set(group).addOnSuccessListener(aVoid -> {
+                        Toast.makeText(getContext(), "Picture Uploaded", Toast.LENGTH_SHORT).show();
+                    }).addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Upload failed", Toast.LENGTH_SHORT).show();
+                    });
+                });
+            });
+        }
+
+
+
+
+    }
+}

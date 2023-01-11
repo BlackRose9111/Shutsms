@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "806427727252",
+    "project_id": "shutsms-b28ab",
+    "storage_bucket": "shutsms-b28ab.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806427727252:android:7c292c49e072fd5a88ab81",
+        "android_client_info": {
+          "package_name": "com.blackrose.shutsms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "806427727252-s4kc0rau0f7gfgduapfpbqfcn02qi33j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBK06WTatgEUIHIlTOgyaMkT4AlERprLZI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "806427727252-s4kc0rau0f7gfgduapfpbqfcn02qi33j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
