@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -45,6 +46,9 @@ public class CreateGroupFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_create_group, container, false);
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
+        db = FirebaseFirestore.getInstance();
+        groupName = view.findViewById(R.id.editGroupNameCreate);
+        groupDescription = view.findViewById(R.id.editDescription);
         recyclerView = view.findViewById(R.id.groupRecyclerView);
         groupImage = view.findViewById(R.id.groupImageCreate);
 
@@ -96,27 +100,27 @@ public class CreateGroupFragment extends Fragment {
         group.put("groupID", uuid);
         group.put("userID",auth.getUid());
         group.put("groupName", groupName);
+        group.put("numbers",new ArrayList<String>());
         group.put("groupDescription", groupDescription);
-
-
         db.collection("/Groups/").document(uuid).set(group).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Group Created", Toast.LENGTH_SHORT).show();
+            if (filePath != null) {
+                storage.getReference("/images/"+uuid).putFile(filePath).addOnSuccessListener(taskSnapshot -> {
+                    storage.getReference("/images/"+uuid).getDownloadUrl().addOnSuccessListener(uri -> {
+                        group.put("groupImage", uri.toString());
+                        db.collection("Groups").document(uuid).set(group).addOnSuccessListener(v -> {
+                            Toast.makeText(getContext(), "Picture Uploaded", Toast.LENGTH_SHORT).show();
+                        }).addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "Upload failed", Toast.LENGTH_SHORT).show();
+                        });
+                    });
+                });
+            }
+
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Group Creation Failed", Toast.LENGTH_SHORT).show();
         });
 
-        if (filePath != null) {
-            storage.getReference().putFile(filePath).addOnSuccessListener(taskSnapshot -> {
-                storage.getReference().getDownloadUrl().addOnSuccessListener(uri -> {
-                    group.put("groupImage", uri.toString());
-                    db.collection("Groups").document(uuid).set(group).addOnSuccessListener(aVoid -> {
-                        Toast.makeText(getContext(), "Picture Uploaded", Toast.LENGTH_SHORT).show();
-                    }).addOnFailureListener(e -> {
-                        Toast.makeText(getContext(), "Upload failed", Toast.LENGTH_SHORT).show();
-                    });
-                });
-            });
-        }
 
 
 
