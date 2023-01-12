@@ -90,6 +90,7 @@ public class CreateGroupFragment extends Fragment {
         });
 
 
+
         return view;
     }
 
@@ -126,4 +127,6 @@ public class CreateGroupFragment extends Fragment {
 
 
     }
+
+
 }
