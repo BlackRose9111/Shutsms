@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.blackrose.shutsms.R;
 import com.blackrose.shutsms.SplashActivity;
+import com.google.firebase.auth.FirebaseAuth;
 
 
 public class LogoutFragment extends Fragment {
@@ -23,7 +24,7 @@ public class LogoutFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        FirebaseAuth.getInstance().signOut();
         getActivity().finish();
     }
 

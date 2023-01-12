@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class SplashActivity extends AppCompatActivity {
 
     @Override
@@ -18,5 +20,9 @@ public class SplashActivity extends AppCompatActivity {
         findViewById(R.id.splashLogin).setOnClickListener(v -> {
             startActivity(new Intent(SplashActivity.this, LoginActivity.class));
         });
+        if(FirebaseAuth.getInstance().getCurrentUser() != null){
+            startActivity(new Intent(SplashActivity.this, MainActivity.class));
+
+        }
     }
 }

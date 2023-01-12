@@ -123,11 +123,12 @@ public class CreateGroupFragment extends Fragment {
                 });
             }
 
+            fetchGroupsFromDb();
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Group Creation Failed", Toast.LENGTH_SHORT).show();
         });
 
-        fetchGroupsFromDb();
+
 
 
     }
@@ -137,14 +138,17 @@ public class CreateGroupFragment extends Fragment {
 
         db.collection("/Groups/").whereEqualTo("userID", uid).get().addOnSuccessListener(queryDocumentSnapshots -> {
             groups = new ArrayList<>();
+            System.out.println("GROUP DATA SIZE "+queryDocumentSnapshots.getDocuments().size());
             for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
                 GroupModel group = new GroupModel(documentSnapshot.getString("groupName"), documentSnapshot.getString("groupDescription"), documentSnapshot.getString("groupImage"), documentSnapshot.getString("groupID"), (ArrayList<String>) documentSnapshot.get("numbers"), documentSnapshot.getString("userID"));
                 groups.add(group);
             }
-            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
-            recyclerView.setLayoutManager(layoutManager);
+
             GroupAdapter adapter = new GroupAdapter(groups);
             recyclerView.setAdapter(adapter);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+
         }).addOnFailureListener(e -> {
             Toast.makeText(getContext(), "Failed to fetch groups", Toast.LENGTH_SHORT).show();
 

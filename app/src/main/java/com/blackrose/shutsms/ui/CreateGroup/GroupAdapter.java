@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,14 +40,14 @@ public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHol
 
     @Override
     public int getItemCount() {
-        return 0;
+        return groups.size();
     }
 
 
     public class GroupViewHolder extends RecyclerView.ViewHolder {
         ImageView groupImage;
-        EditText groupName;
-        EditText groupDescription;
+        TextView groupName;
+        TextView groupDescription;
         public GroupViewHolder(View itemView) {
             super(itemView);
             groupImage = itemView.findViewById(R.id.ItemImage);
