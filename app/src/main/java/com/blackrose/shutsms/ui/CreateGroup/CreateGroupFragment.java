@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
@@ -17,8 +18,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.blackrose.shutsms.GroupModel;
 import com.blackrose.shutsms.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 
@@ -37,6 +40,7 @@ public class CreateGroupFragment extends Fragment {
     FirebaseStorage storage;
     RecyclerView recyclerView;
     Uri filePath;
+    ArrayList<GroupModel> groups;
 
 
     @Override
@@ -90,8 +94,9 @@ public class CreateGroupFragment extends Fragment {
         });
 
 
-
+        fetchGroupsFromDb();
         return view;
+
     }
 
     public void CreateGroup(String groupName, String groupDescription, Uri filePath) {
@@ -99,15 +104,15 @@ public class CreateGroupFragment extends Fragment {
         String uuid = UUID.randomUUID().toString();
         HashMap<String, Object> group = new HashMap<>();
         group.put("groupID", uuid);
-        group.put("userID",auth.getUid());
+        group.put("userID", auth.getUid());
         group.put("groupName", groupName);
-        group.put("numbers",new ArrayList<String>());
+        group.put("numbers", new ArrayList<String>());
         group.put("groupDescription", groupDescription);
         db.collection("/Groups/").document(uuid).set(group).addOnSuccessListener(aVoid -> {
             Toast.makeText(getContext(), "Group Created", Toast.LENGTH_SHORT).show();
             if (filePath != null) {
-                storage.getReference("/images/"+uuid).putFile(filePath).addOnSuccessListener(taskSnapshot -> {
-                    storage.getReference("/images/"+uuid).getDownloadUrl().addOnSuccessListener(uri -> {
+                storage.getReference("/images/" + uuid).putFile(filePath).addOnSuccessListener(taskSnapshot -> {
+                    storage.getReference("/images/" + uuid).getDownloadUrl().addOnSuccessListener(uri -> {
                         group.put("groupImage", uri.toString());
                         db.collection("Groups").document(uuid).set(group).addOnSuccessListener(v -> {
                             Toast.makeText(getContext(), "Picture Uploaded", Toast.LENGTH_SHORT).show();
@@ -122,8 +127,28 @@ public class CreateGroupFragment extends Fragment {
             Toast.makeText(getContext(), "Group Creation Failed", Toast.LENGTH_SHORT).show();
         });
 
+        fetchGroupsFromDb();
 
 
+    }
+
+    public void fetchGroupsFromDb() {
+        String uid = auth.getCurrentUser().getUid();
+
+        db.collection("/Groups/").whereEqualTo("userID", uid).get().addOnSuccessListener(queryDocumentSnapshots -> {
+            groups = new ArrayList<>();
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                GroupModel group = new GroupModel(documentSnapshot.getString("groupName"), documentSnapshot.getString("groupDescription"), documentSnapshot.getString("groupImage"), documentSnapshot.getString("groupID"), (ArrayList<String>) documentSnapshot.get("numbers"), documentSnapshot.getString("userID"));
+                groups.add(group);
+            }
+            LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+            GroupAdapter adapter = new GroupAdapter(groups);
+            recyclerView.setAdapter(adapter);
+        }).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), "Failed to fetch groups", Toast.LENGTH_SHORT).show();
+
+        });
 
 
     }
