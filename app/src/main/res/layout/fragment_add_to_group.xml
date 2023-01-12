@@ -5,10 +5,37 @@
     android:layout_height="match_parent"
     tools:context=".ui.AddToGroup.AddToGroupFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_margin="15dp"
+        android:orientation="vertical"
+        android:padding="8dp">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/groupsAddtoGroup"
+            android:layout_width="match_parent"
+            android:layout_height="150dp">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <TextView
+            android:id="@+id/selectedGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Selected Group: " />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/contactsSelectContact"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/textView5"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="201913709034 - ÖMER FARUK BARAN" />
+    </LinearLayout>
 </FrameLayout>
