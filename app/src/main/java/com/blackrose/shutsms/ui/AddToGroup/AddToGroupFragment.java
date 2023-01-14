@@ -16,6 +16,7 @@ import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blackrose.shutsms.ContactModel;
@@ -41,6 +42,7 @@ public class AddToGroupFragment extends Fragment {
     RecyclerView contactsRecyclerView;
     RecyclerView groupsRecyclerView;
     GroupModel selectedGroup;
+    TextView selectedGroupText;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,7 @@ public class AddToGroupFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
+        selectedGroupText = view.findViewById(R.id.selectedGroup);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -73,22 +76,32 @@ public class AddToGroupFragment extends Fragment {
 
         return view;
     }
-    private void getGroups(){
+
+    private void getGroups() {
 
         groups = new ArrayList<GroupModel>();
         String uid = auth.getCurrentUser().getUid();
 
-        db.collection("/groups/").whereEqualTo("userID",uid).get().addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                for(DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
-                    GroupModel group = documentSnapshot.toObject(GroupModel.class);
+        db.collection("/Groups/").whereEqualTo("userID", uid).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (DocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
+                    GroupModel group = new GroupModel(documentSnapshot.getString("groupName"), documentSnapshot.getString("groupDescription"), documentSnapshot.getString("groupImage"), documentSnapshot.getString("groupID"), (ArrayList<String>) documentSnapshot.get("numbers"), documentSnapshot.getString("userID"));
+
                     groups.add(group);
                 }
                 groupsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
-                groupsRecyclerView.setAdapter(new GroupAdapter(groups,getContext(),v ->{}));
+                groupsRecyclerView.setAdapter(new GroupAdapter(groups, getContext(), v -> {
+
+                    selectedGroup = groups.get(v);
+                    Toast.makeText(getContext(), selectedGroup.getName(), Toast.LENGTH_SHORT).show();
+                    String result = "Selected Group: "+ selectedGroup.getName();
+                    selectedGroupText.setText(result);
+
+
+
+                }));
             }
         });
-
 
 
     }
@@ -114,22 +127,24 @@ public class AddToGroupFragment extends Fragment {
         contactsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
         contactsRecyclerView.setAdapter(new ContactsAdapter(contacts, v -> {
 
-          ContactModel contact =  contacts.get(v);
-            if(selectedGroup != null) {
-                db.collection(
-                        "groups/" + selectedGroup.getId()).document("numbers").get().addOnSuccessListener(documentSnapshot -> {
-                            ArrayList<String> numbers = (ArrayList<String>) documentSnapshot.get("numbers");
-                            numbers.add(contact.getNumber());
-                            db.collection("groups/" + selectedGroup.getId()).document("numbers").update("numbers", numbers);
-                            Toast.makeText(getContext(), "Added to group", Toast.LENGTH_SHORT).show();
-                        });
-            }else{
+            ContactModel contact = contacts.get(v);
+            if (selectedGroup != null) {
+                db.document(
+                        "Groups/" + selectedGroup.getId()).get().addOnSuccessListener(documentSnapshot -> {
+                    ArrayList<String> numbers = (ArrayList<String>) documentSnapshot.get("numbers");
+                    if(numbers.contains(contact.getNumber())){
+                        Toast.makeText(getContext(), "This number is already in that group", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    numbers.add(contact.getNumber());
+                    db.document("Groups/" + selectedGroup.getId()).update("numbers", numbers);
+                    Toast.makeText(getContext(), "Added to group", Toast.LENGTH_SHORT).show();
+                });
+            } else {
                 Toast.makeText(getContext(), "Please select a group", Toast.LENGTH_SHORT).show();
             }
 
-                }));
-
-
+        }));
 
 
     }

@@ -18,7 +18,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-public class GroupAdapter extends RecyclerView.Adapter implements IItemClickAble {
+public class GroupAdapter extends RecyclerView.Adapter<GroupAdapter.GroupViewHolder> implements IItemClickAble {
     Context context;
     ArrayList<GroupModel> groups;
     IItemClickAble listener;
@@ -32,13 +32,13 @@ public class GroupAdapter extends RecyclerView.Adapter implements IItemClickAble
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public GroupViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new GroupViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.add_to_group_group_item, parent, false), listener);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-
+    public void onBindViewHolder(@NonNull GroupViewHolder holder, int position) {
+        holder.SetData(groups.get(position));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class GroupAdapter extends RecyclerView.Adapter implements IItemClickAble
     }
 
 
-    private class GroupViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class GroupViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         IItemClickAble listener;
         TextView groupName;
         ImageView groupImage;
@@ -66,7 +66,7 @@ public class GroupAdapter extends RecyclerView.Adapter implements IItemClickAble
             groupImage = itemView.findViewById(R.id.GroupImageAddToGroup);
             groupName = itemView.findViewById(R.id.GroupName);
             groupDescription = itemView.findViewById(R.id.GroupDescriptionAddToGroup);
-
+            parent.setOnClickListener(this);
 
         }
         public void SetData(GroupModel model){
